@@ -1,6 +1,8 @@
 # LEPA
 
-**LEPA: Learning Geometric Equivariance in Satellite Remote Sensing Data with a Predictive Architecture**
+**Learning Geometric Equivariance in Satellite Remote Sensing Data with a Predictive Architecture**
+
+[![arXiv](https://img.shields.io/badge/arXiv-2603.07246-b31b1b.svg)](https://arxiv.org/abs/2603.07246)
 
 This repository contains the implementation of LEPA, a self-supervised learning method designed specifically for satellite remote sensing imagery. LEPA extends the Image-based Joint-Embedding Predictive Architecture (I-JEPA) framework to learn geometric equivariance properties for patch embeddings.
 
