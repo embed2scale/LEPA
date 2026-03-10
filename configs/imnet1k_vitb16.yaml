@@ -1,0 +1,81 @@
+# NOTE: ImageNet-22K (IN22k) dataloader is not implemented
+# please implement IN22k data loader based on your data
+# storage format, and update the paths in your config
+# to load from your IN22k dataset.
+data:
+  batch_size: 128
+  chunk_size: 16
+  input_size: [1, 224, 224]
+  crop_size: [1, 224, 224]
+  bands: [0, 1, 2]
+  scaling: nan # for hls
+  mean: [] # for hls
+  std: [] # for hls
+
+  num_workers: 8
+  pin_mem: true
+  root_path: data/imagenet1k/
+  use_color_distortion: false
+  use_gaussian_blur: false
+  use_horizontal_flip: true
+evaluation:
+  eval_root_path: /p/scratch/geofm4eo/HLSv9/val
+  eval_metrics: # functions from src/utils/metrics.py
+  - mse_loss
+  - l1_loss
+  - cosine
+  - dot
+logging:
+  folder: jepa_imnet1k
+  write_tag: jepa
+  use_wandb: true
+  wandb_entity: embed2scale
+  wandb_project: earth-world-models
+  wandb_name: jepa_vitb16_224_ep300
+mask:
+  collator_type: multiblock # or random
+  mask_predictions: true
+  mask_context: true
+  jepa_target: true # whether to use JEPA target (center crop of input image) or iwm target
+  allow_overlap: false
+  aspect_ratio:
+  - 0.75
+  - 1.5
+  enc_mask_scale:
+  - 0.85
+  - 1.0
+  min_keep: 10
+  num_enc_masks: 1
+  num_pred_masks: 4
+  patch_size: 16
+  pred_mask_scale:
+  - 0.15
+  - 0.2
+model:
+  model_name_enc: vit_base
+  interp_pos_encoding: interpolate #conditional # or interpolate
+  pred_depth: 12
+  pred_emb_dim: 384
+  condition_on: [] #"angle", "scale", "tx", "ty"] # conditions to use for interpolation
+  enc_has_cls_token: false
+  enc_n_register_tokens: 0
+  pred_n_register_tokens: 0
+  finetune_only_predictor: false
+meta:
+  copy_data: false
+  load_checkpoint: false
+  read_checkpoint: null
+  use_bfloat16: true
+optimization:
+  loss: smooth_l1_loss # any loss function from torch.nn.functional, I-JEPA paper uses mse_loss, in their code it was smooth_l1_loss (but loss always below 1 so effectively mse_loss)
+  ema:
+  - 0.996
+  - 1.0
+  epochs: 300
+  final_lr: 1.0e-06
+  ipe_scale: 1.25
+  lr: 0.001
+  start_lr: 0.0002
+  warmup: 40
+  final_weight_decay: 0.4
+  weight_decay: 0.04
