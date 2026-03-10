@@ -13,6 +13,7 @@ Geospatial foundation models provide precomputed embeddings that serve as compac
 
 ![LEPA Usage](https://github.com/user-attachments/assets/401ec9aa-eb4f-451f-8908-8d3ed4db14ea)
 
+
 ## Method
 LEPA is a method for self-supervised learning that leverages the geometric structure of satellite imagery. The key innovation is learning to predict representations under various geometric transformations (rotations, translations, and scaling) commonly encountered in remote sensing data. This approach:
 1. learns representations that are geometrically aware and equivariant to transformations,
@@ -112,7 +113,6 @@ This research is carried out as part of the [Embed2Scale](embed2scale.eu) projec
 The authors gratefully acknowledge the Gauss Centre for Supercomputing e.V. (www.gauss-centre.eu) for funding this project by providing computing time through the John von Neumann Institute for Computing (NIC) on the GCS Supercomputer JUWELS at Jülich Supercomputing Centre (JSC).
 
 This project includes code from <a href="https://github.com/facebookresearch/ijepa">I-JEPA</a>.
-
 Licensed under Creative Commons Attribution-NonCommercial 4.0
 https://creativecommons.org/licenses/by-nc/4.0/
 
@@ -127,7 +127,8 @@ If you find this repository useful in your research, please consider giving a st
       archivePrefix={arXiv},
       primaryClass={cs.CV},
       url={https://arxiv.org/abs/2603.07246}, 
-}```
+}
+```
 
 ### Related Work
 ```
