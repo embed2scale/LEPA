@@ -74,8 +74,7 @@ def sync_output_dir(output_dir):
     rank = torch.distributed.get_rank()
 
     if rank == 0:
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+        os.makedirs(output_dir, exist_ok=True)
         torch.distributed.barrier()
     else:
         torch.distributed.barrier()
@@ -137,6 +136,8 @@ def main(args, resume_preempt=False):
     enc_n_register_tokens = args['model']['enc_n_register_tokens']
     pred_n_register_tokens = args['model']['pred_n_register_tokens']
     finetune_only_predictor = args['model'].get('finetune_only_predictor', False)
+    freeze_condition_mlp = args['model'].get('freeze_condition_mlp', False)
+    no_condition_mlp = args['model'].get('no_condition_mlp', False)
 
     # -- MASK
     collator_type = args['mask']['collator_type']  # 'multiblock' or 'random'
@@ -240,9 +241,15 @@ def main(args, resume_preempt=False):
         num_conditionings=len(condition_on),
         enc_has_cls_token=enc_has_cls_token,
         enc_n_register_tokens=enc_n_register_tokens,
-        pred_n_register_tokens=pred_n_register_tokens
+        pred_n_register_tokens=pred_n_register_tokens,
+        no_condition_mlp=no_condition_mlp
         )
     target_encoder = copy.deepcopy(encoder)
+
+    if freeze_condition_mlp and hasattr(predictor, 'condition_mlp'):
+        logger.info('Freezing predictor conditioning MLP parameters')
+        for param in predictor.condition_mlp.parameters():
+            param.requires_grad = False
 
     img_key = 'sample' if 'terramesh' not in root_path.lower() else 'image'
     target_key = 'target' if 'terramesh' not in root_path.lower() else 'image'
@@ -658,17 +665,16 @@ def main(args, resume_preempt=False):
             # else:
             #     logger.setLevel(logging.INFO)
 
-        # logger.info('Running evaluation dataset')
-        # if rank == 0:
-        #     _, etime = gpu_timer(evaluate_dataset)
-        # torch.distributed.barrier()
-        # logger.info('Finished evaluation dataset')
+        logger.info('Running evaluation dataset')
+        _, etime = gpu_timer(evaluate_dataset)
+        torch.distributed.barrier()
+        logger.info('Finished evaluation dataset')
 
 
         # -- log eval metrics
-        # for name, _ in eval_losses.items():
-        #     logger.info(f'Eval {name}: {eval_losses[name].avg:.3f} ({etime/1000:.1f} s)')
-        # train_logger.log_val(epoch + 1, **{name: eval_losses[name].avg for name in eval_losses}, **{"time (ms)": etime})
+        for name, _ in eval_losses.items():
+            logger.info(f'Eval {name}: {eval_losses[name].avg:.3f} ({etime/1000:.1f} s)')
+        train_logger.log_val(epoch + 1, **{name: eval_losses[name].avg for name in eval_losses}, **{"time (ms)": etime})
 
 if __name__ == "__main__":
     # args are in --fname argument
@@ -773,6 +779,12 @@ if __name__ == "__main__":
     parser.add_argument(
         '--model__finetune_only_predictor', type=lambda x: x.lower() == 'true', default=None,
         help='whether to train only the predictor and keep the encoder frozen.')
+    parser.add_argument(
+        '--model__freeze_condition_mlp', type=lambda x: x.lower() == 'true', default=None,
+        help='whether to freeze the predictor conditioning MLP during finetuning.')
+    parser.add_argument(
+        '--model__no_condition_mlp', type=lambda x: x.lower() == 'true', default=None,
+        help='whether to disable the predictor conditioning MLP while still using conditional positional encodings.')
     parser.add_argument(
         '--optimization__epochs', type=int, default=None,
         help='number of epochs to train for.')

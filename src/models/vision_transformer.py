@@ -399,7 +399,7 @@ class VisionTransformerPredictor(nn.Module):
         pred_tokens = self.mask_token.repeat(pos_embs.size(0), pos_embs.size(1), 1)
         # --
         pred_tokens += pos_embs
-        if len(conditions) > 0:
+        if len(conditions) > 0 and hasattr(self, 'condition_mlp'):
             # -- concat conditions to pred_tokens
             conditions = torch.cat(list(conditions.values()), dim=1)
             conditions = conditions.unsqueeze(1).repeat(len(masks), pred_tokens.size(dim=1), 1)  # (B, N_mask, num_conditionings)
